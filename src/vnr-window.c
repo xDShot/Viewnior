@@ -1607,12 +1607,14 @@ vnr_window_cmd_delete(GtkAction *action, VnrWindow *window)
 
             if (vnr_window_is_shuffled(window))
             {
+                // Advance file_list_shuffled
                 next = g_list_next(window->file_list_shuffled);
                 if (next == NULL)
                     next = g_list_first(window->file_list_shuffled);
             }
             else
             {
+                // Advance file_list
                 next = g_list_next(window->file_list);
                 if (next == NULL)
                     next = g_list_first(window->file_list);
@@ -1620,8 +1622,10 @@ vnr_window_cmd_delete(GtkAction *action, VnrWindow *window)
 
             if (g_list_length(g_list_first(window->file_list)) > 1)
             {
-                window->file_list = g_list_delete_link(window->file_list, window->file_list);
-                window->file_list_shuffled = g_list_delete_link(window->file_list_shuffled, window->file_list_shuffled);
+                window->file_list = g_list_delete_link(g_list_first(window->file_list), window->file_list);
+                window->file_list_shuffled = g_list_delete_link(
+                                    g_list_first(window->file_list_shuffled),
+                                    window->file_list_shuffled);
                 gtk_action_group_set_sensitive(window->actions_collection, TRUE);
                 allow_slideshow(window);
             }
@@ -1629,7 +1633,7 @@ vnr_window_cmd_delete(GtkAction *action, VnrWindow *window)
             {
                 g_list_free(window->file_list);
                 g_list_free(window->file_list_shuffled);
-                next == NULL;
+                next = NULL;
                 gtk_action_group_set_sensitive(window->actions_collection, FALSE);
                 deny_slideshow(window);
             }
@@ -1637,12 +1641,12 @@ vnr_window_cmd_delete(GtkAction *action, VnrWindow *window)
             if (vnr_window_is_shuffled(window))
             {
                 window->file_list_shuffled = next;
-                window->file_list = g_list_find(g_list_first(window->file_list), next->data);
+                vnr_window_sync_list_position (window->file_list_shuffled, window->file_list);
             }
             else
             {
                 window->file_list = next;
-                window->file_list_shuffled = g_list_find(g_list_first(window->file_list_shuffled), next->data);
+                vnr_window_sync_list_position (window->file_list, window->file_list_shuffled);
             }
 
             if(next == NULL)
@@ -1650,7 +1654,6 @@ vnr_window_cmd_delete(GtkAction *action, VnrWindow *window)
                 vnr_window_close(window);
                 gtk_action_group_set_sensitive(window->actions_collection, FALSE);
                 deny_slideshow(window);
-                vnr_window_set_list(window, NULL, FALSE);
                 vnr_message_area_show(VNR_MESSAGE_AREA (window->msg_area), TRUE,
                                       _("The given locations contain no images."),
                                       TRUE);
@@ -1662,8 +1665,6 @@ vnr_window_cmd_delete(GtkAction *action, VnrWindow *window)
             }
             else
             {
-                // Lists are set and synced already
-                //~ vnr_window_set_list(window, next, FALSE);
                 if(window->prefs->confirm_delete && !window->cursor_is_hidden)
                     gdk_window_set_cursor(GTK_WIDGET(dlg)->window,
                                           gdk_cursor_new(GDK_WATCH));
@@ -2507,8 +2508,20 @@ vnr_window_set_list (VnrWindow *window, GList *list, gboolean free_current)
     }
     window->file_list = list;
     // Sync list position
-    window->file_list_shuffled = g_list_find(vnr_tools_get_shuffled_list_from_list(list),
-                                            window->file_list->data);
+    window->file_list_shuffled = vnr_tools_get_shuffled_list_from_list(window->file_list);
+    vnr_window_sync_list_position(window->file_list, window->file_list_shuffled);
+}
+
+void vnr_window_sync_list_position(GList *from, GList *to)
+{
+    if (from == NULL)
+    {
+        to = NULL;
+    }
+    else
+    {
+        to = g_list_find (g_list_first(from), from->data);
+    }
 }
 
 gboolean
