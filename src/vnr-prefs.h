@@ -86,11 +86,12 @@ struct _VnrPrefs {
 #ifdef HAVE_WALLPAPER
     VnrPrefsDesktop desktop;
 #endif /* HAVE_WALLPAPER */
-    
+
     VnrPrefsWheel behavior_wheel;
     VnrPrefsClick behavior_click;
     VnrPrefsModify behavior_modify;
     gboolean fit_on_fullscreen;
+    gboolean shuffle_images;
     gboolean show_hidden;
     gboolean smooth_images;
     gboolean confirm_delete;
