@@ -24,8 +24,11 @@
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "vnr-tools.h"
+#include "vnr-file.h"
 
 void
 vnr_tools_fit_to_size (gint * width, gint * height, gint max_width, gint max_height)
@@ -209,5 +212,39 @@ vnr_tools_apply_embedded_orientation (GdkPixbufAnimation **anim)
     g_object_unref(*anim);
 
     *anim = GDK_PIXBUF_ANIMATION(s_anim);
+}
+
+/**
+ * Generate a shuffled linked list using the PID as seed
+ * */
+GList*
+vnr_tools_get_shuffled_list_from_list (GList *list)
+{
+    GList *shuffled_list = NULL;
+    GList *l;
+    GRand *rand = g_rand_new_with_seed(getpid());
+
+    guint length = g_list_length(g_list_first(list));
+    gpointer *ptr_arr = malloc(length * sizeof(gpointer));
+
+    guint i = 0;
+    for (l = g_list_first(list); l != NULL; l = l->next)
+        ptr_arr[i++] = l->data;
+
+    gpointer tmp;
+    for (guint i = length - 1; i > 0; i--) {
+        guint j = g_rand_int_range(rand, 0, (i + 1));
+        tmp = ptr_arr[j];
+        ptr_arr[j] = ptr_arr[i];
+        ptr_arr[i] = tmp;
+    }
+
+    for (i = 0; i < length; i++)
+        shuffled_list = g_list_prepend(shuffled_list, ptr_arr[i]);
+
+    g_rand_free(rand);
+    free(ptr_arr);
+
+    return shuffled_list;
 }
 #endif /* __VNR_IMAGE_H__ */

@@ -28,5 +28,6 @@ GSList *vnr_tools_parse_uri_string_list_to_file_list (const gchar *uri_list);
 void    vnr_tools_apply_embedded_orientation (GdkPixbufAnimation **anim);
 gint    compare_quarks (gconstpointer a, gconstpointer b);
 void    get_position_of_element_in_list(GList *list, gint *current, gint *total);
+GList*  vnr_tools_get_shuffled_list_from_list (GList *list);
 
 #endif /* __VNR_IMAGE_H__ */
