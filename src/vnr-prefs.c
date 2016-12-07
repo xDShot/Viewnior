@@ -48,6 +48,13 @@ toggle_fit_on_fullscreen_cb (GtkToggleButton *togglebutton, gpointer user_data)
 }
 
 static void
+toggle_shuffle_images_cb (GtkToggleButton *togglebutton, gpointer user_data)
+{
+    VNR_PREFS(user_data)->shuffle_images = gtk_toggle_button_get_active(togglebutton);
+    vnr_prefs_save(VNR_PREFS(user_data));
+}
+
+static void
 toggle_smooth_images_cb (GtkToggleButton *togglebutton, gpointer user_data)
 {
     VNR_PREFS(user_data)->smooth_images = gtk_toggle_button_get_active(togglebutton);
@@ -156,6 +163,7 @@ vnr_prefs_set_default(VnrPrefs *prefs)
     prefs->zoom = VNR_PREFS_ZOOM_SMART;
     prefs->show_hidden = FALSE;
     prefs->fit_on_fullscreen = TRUE;
+    prefs->shuffle_images = FALSE;
     prefs->smooth_images = TRUE;
     prefs->confirm_delete = TRUE;
     prefs->slideshow_timeout = 5;
@@ -186,6 +194,7 @@ build_dialog (VnrPrefs *prefs)
     GObject *close_button;
     GtkToggleButton *show_hidden;
     GtkToggleButton *fit_on_fullscreen;
+    GtkToggleButton *shuffle_images;
     GtkBox *zoom_mode_box;
     GtkComboBox *zoom_mode;
     GtkToggleButton *smooth_images;
@@ -230,6 +239,11 @@ build_dialog (VnrPrefs *prefs)
     fit_on_fullscreen = GTK_TOGGLE_BUTTON (gtk_builder_get_object (builder, "fit_on_fullscreen"));
     gtk_toggle_button_set_active( fit_on_fullscreen, prefs->fit_on_fullscreen );
     g_signal_connect(G_OBJECT(fit_on_fullscreen), "toggled", G_CALLBACK(toggle_fit_on_fullscreen_cb), prefs);
+
+    /* Shuffle images checkbox */
+    shuffle_images = GTK_TOGGLE_BUTTON (gtk_builder_get_object (builder, "shuffle_images"));
+    gtk_toggle_button_set_active( shuffle_images, prefs->shuffle_images );
+    g_signal_connect(G_OBJECT(shuffle_images), "toggled", G_CALLBACK(toggle_shuffle_images_cb), prefs);
 
     /* Smooth images checkbox */
     smooth_images = GTK_TOGGLE_BUTTON (gtk_builder_get_object (builder, "smooth_images"));
@@ -363,6 +377,7 @@ vnr_prefs_load (VnrPrefs *prefs)
 
     prefs->zoom = g_key_file_get_integer (conf, "prefs", "zoom-mode", &error);
     prefs->fit_on_fullscreen = g_key_file_get_boolean (conf, "prefs", "fit-on-fullscreen", &error);
+    prefs->shuffle_images = g_key_file_get_boolean (conf, "prefs", "shuffle-images", &error);
     prefs->show_hidden = g_key_file_get_boolean (conf, "prefs", "show-hidden", &error);
     prefs->smooth_images = g_key_file_get_boolean (conf, "prefs", "smooth-images", &error);
     prefs->confirm_delete = g_key_file_get_boolean (conf, "prefs", "confirm-delete", &error);
@@ -454,6 +469,7 @@ vnr_prefs_save (VnrPrefs *prefs)
     conf = g_key_file_new();
     g_key_file_set_integer (conf, "prefs", "zoom-mode", prefs->zoom);
     g_key_file_set_boolean (conf, "prefs", "fit-on-fullscreen", prefs->fit_on_fullscreen);
+    g_key_file_set_boolean (conf, "prefs", "shuffle-images", prefs->shuffle_images);
     g_key_file_set_boolean (conf, "prefs", "show-hidden", prefs->show_hidden);
     g_key_file_set_boolean (conf, "prefs", "smooth-images", prefs->smooth_images);
     g_key_file_set_boolean (conf, "prefs", "confirm-delete", prefs->confirm_delete);
